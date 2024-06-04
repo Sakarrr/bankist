@@ -70,7 +70,7 @@ const displayMovements = function (movements) {
     <div class="movements__type movements__type--${type}">${
       i + 1
     } ${type.toUpperCase()} </div>
-    <div class="movements__value">${mov}</div>
+    <div class="movements__value">Rs. ${mov}</div>
   </div>`;
 
     containerMovements.insertAdjacentHTML('afterbegin', html);
@@ -79,6 +79,12 @@ const displayMovements = function (movements) {
 displayMovements(account1.movements);
 
 // console.log(containerMovements.innerHTML); // Read HTML contents.
+
+const calcDisplayBalance = function (movements) {
+  const balance = movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `Rs. ${balance}`;
+};
+calcDisplayBalance(account1.movements);
 
 const createUserNames = function (accs) {
   accs.forEach(function (accs) {
