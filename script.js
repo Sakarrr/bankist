@@ -82,9 +82,9 @@ const displayMovements = function (movements) {
 
 // console.log(containerMovements.innerHTML); // Read HTML contents.
 
-const calcDisplayBalance = function (movements) {
-  const balance = movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `Rs. ${balance}`;
+const calcDisplayBalance = function (acc) {
+  acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `Rs. ${acc.balance}`;
 };
 
 const calcDisplaySummary = function (movements, interestRate) {
@@ -104,6 +104,7 @@ const calcDisplaySummary = function (movements, interestRate) {
     .map(deposit => (deposit * interestRate) / 100)
     .filter(int => int >= 1)
     .reduce((acc, int) => acc + int);
+  labelSumInterest.textContent = `Rs. ${interest}`;
   labelSumInterestRate.textContent = `${interestRate}%`;
 };
 
@@ -119,8 +120,21 @@ const createUserNames = function (accs) {
 
 createUserNames(accounts);
 
+const updateUI = function (acc) {
+  // Display movements.
+  displayMovements(acc.movements);
+
+  // Display balance
+  calcDisplayBalance(acc);
+
+  // Display summary
+  calcDisplaySummary(acc.movements, acc.interestRate);
+};
+
 // Event Handlers
-let currentAccount = btnLogin.addEventListener('click', function (e) {
+let currentAccount = '';
+
+btnLogin.addEventListener('click', function (e) {
   e.preventDefault(); // Prevent form from submitting
 
   currentAccount = accounts.find(
@@ -139,13 +153,29 @@ let currentAccount = btnLogin.addEventListener('click', function (e) {
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
 
-    // Display movements.
-    displayMovements(currentAccount.movements);
+    updateUI(currentAccount);
+  }
+});
 
-    // Display balance
-    calcDisplayBalance(currentAccount.movements);
+btnTransfer.addEventListener('click', function (e) {
+  e.preventDefault();
+  const amount = Number(inputTransferAmount.value);
+  const reciever = accounts.find(acc => acc.username === inputTransferTo.value);
 
-    // Display summary
-    calcDisplaySummary(currentAccount.movements, currentAccount.interestRate);
+  inputTransferAmount.value = inputTransferTo.value = '';
+
+  if (
+    amount > 0 &&
+    reciever &&
+    currentAccount.balance >= amount &&
+    reciever?.username !== currentAccount.username
+  ) {
+    console.log('Transfer Valid');
+
+    // Doing the transfer
+    currentAccount.movements.push(-amount);
+    reciever.movements.push(amount);
+
+    updateUI(currentAccount);
   }
 });
