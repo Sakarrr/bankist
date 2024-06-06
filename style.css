@@ -86,7 +86,7 @@ nav {
 /* MAIN */
 .app {
   position: relative;
-  max-width: 125rem;
+  max-width: 130rem;
   margin: 4rem auto;
   display: grid;
   grid-template-columns: 4fr 3fr;
