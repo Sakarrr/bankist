@@ -102,12 +102,13 @@ const formatMovement = function (date, locale) {
   if (daysPassed <= 7) return `${daysPassed} days ago`;
 
   return new Intl.DateTimeFormat(locale).format(date);
+};
 
-  const day = `${date.getDate()}`.padStart(2, 0);
-  const month = `${date.getMonth() + 1}`.padStart(2, 0);
-  const year = date.getFullYear();
-
-  return `${day},${month}, ${year}`;
+const formatBalance = function (locale, balance, currency) {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+  }).format(balance);
 };
 
 const displayMovements = function (acc, sort = false) {
@@ -127,7 +128,11 @@ const displayMovements = function (acc, sort = false) {
       i + 1
     } ${type.toUpperCase()} </div>
     <div class="movements__date">${displayDate}</div>
-    <div class="movements__value">Rs. ${mov.toFixed(2)}</div>
+    <div class="movements__value">${formatBalance(
+      acc.locale,
+      mov,
+      acc.currency
+    )}</div>
   </div>`;
 
     containerMovements.insertAdjacentHTML('afterbegin', html);
@@ -136,27 +141,35 @@ const displayMovements = function (acc, sort = false) {
 
 const calcDisplayBalance = function (acc) {
   acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `Rs. ${acc.balance.toFixed(2)}`;
+  labelBalance.textContent = formatBalance(
+    acc.locale,
+    acc.balance,
+    acc.currency
+  );
 };
 
-const calcDisplaySummary = function (movements, interestRate) {
-  const incomes = movements
+const calcDisplaySummary = function (acc, interestRate) {
+  const incomes = acc.movements
     .filter(mov => mov > 0)
     .reduce((acc, mov) => acc + mov);
 
-  labelSumIn.textContent = `Rs. ${incomes.toFixed(2)}`;
+  labelSumIn.textContent = formatBalance(acc.locale, incomes, acc.currency);
 
-  const outgoings = movements
+  const outgoings = acc.movements
     .filter(mov => mov < 0)
     .reduce((acc, mov) => acc + mov);
-  labelSumOut.textContent = `Rs. ${Math.abs(outgoings).toFixed(2)}`;
+  labelSumOut.textContent = formatBalance(acc.locale, outgoings, acc.currency);
 
-  const interest = movements
+  const interest = acc.movements
     .filter(mov => mov > 0)
     .map(deposit => (deposit * interestRate) / 100)
     .filter(int => int >= 1)
     .reduce((acc, int) => acc + int);
-  labelSumInterest.textContent = `Rs. ${interest.toFixed(2)}`;
+  labelSumInterest.textContent = formatBalance(
+    acc.locale,
+    interest,
+    acc.currency
+  );
   labelSumInterestRate.textContent = `${interestRate}%`;
 };
 
@@ -180,7 +193,7 @@ const updateUI = function (acc) {
   calcDisplayBalance(acc);
 
   // Display summary
-  calcDisplaySummary(acc.movements, acc.interestRate);
+  calcDisplaySummary(acc, acc.interestRate);
 };
 
 // Event Handlers
